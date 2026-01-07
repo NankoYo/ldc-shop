@@ -159,7 +159,7 @@ export async function getCategories(): Promise<Array<{ id: number; name: string;
             id: categories.id,
             name: categories.name,
             icon: categories.icon,
-            sortOrder: categories.sortOrder,
+            sortOrder: sql<number>`COALESCE(${categories.sortOrder}, 0)::int`,
         }).from(categories).orderBy(asc(categories.sortOrder), asc(categories.name))
         return rows
     } catch (error: any) {
