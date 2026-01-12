@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { orders, cards } from "@/lib/db/schema";
 import { eq, sql } from "drizzle-orm";
+import { isPaymentOrder } from "@/lib/payment";
 
 export async function processOrderFulfillment(orderId: string, paidAmount: number, tradeNo: string) {
     const order = await db.query.orders.findFirst({
@@ -17,6 +18,19 @@ export async function processOrderFulfillment(orderId: string, paidAmount: numbe
     // Allow small float epsilon difference
     if (Math.abs(paidAmount - orderMoney) > 0.01) {
         throw new Error(`Amount mismatch! Order: ${orderMoney}, Paid: ${paidAmount}`);
+    }
+
+    if (isPaymentOrder(order.productId)) {
+        if (order.status === 'pending' || order.status === 'cancelled') {
+            await db.update(orders)
+                .set({
+                    status: 'paid',
+                    paidAt: new Date(),
+                    tradeNo: tradeNo
+                })
+                .where(eq(orders.orderId, orderId));
+        }
+        return { success: true, status: 'processed' };
     }
 
     if (order.status === 'pending' || order.status === 'cancelled') {

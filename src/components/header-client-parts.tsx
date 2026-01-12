@@ -79,9 +79,14 @@ export function HeaderUserMenuItems({ isAdmin }: { isAdmin: boolean }) {
                 <Link href="/orders">{t('common.myOrders')}</Link>
             </DropdownMenuItem>
             {isAdmin && (
-                <DropdownMenuItem asChild>
-                    <Link href="/admin">{t('common.dashboard')}</Link>
-                </DropdownMenuItem>
+                <>
+                    <DropdownMenuItem asChild>
+                        <Link href="/admin/collect">{t('payment.adminMenu')}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href="/admin">{t('common.dashboard')}</Link>
+                    </DropdownMenuItem>
+                </>
             )}
         </>
     )

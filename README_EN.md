@@ -28,6 +28,7 @@ A robust, serverless virtual goods shop built with **Next.js 16**, **Vercel Post
     - 🧾 **Order Center**: Order list and details pages.
     - 🔔 **Pending Order Alert**: Homepage banner reminds users of unpaid orders.
     - 🔄 **Refund Requests**: Users can submit refund requests for admin review (supports client-side & server-side refund).
+    - 💳 **Payment QR**: Admins can generate payment links/QR codes for direct payments without requiring a product.
 - **Admin Console**:
     - 📊 **Sales Stats**: Today/week/month/total overview.
     - ⚠️ **Low Stock Alerts**: Configurable threshold and warnings.
@@ -66,6 +67,8 @@ While the system supports active order status querying, for the best user experi
 The shared `vercel.app` domain is sometimes flagged by firewalls or payment gateways, which might delay or block payment callbacks. Using a custom domain avoids these issues.
 
 ## 🐳 Docker Deployment (Docker Compose)
+
+> ⚠️ **Experimental**: Docker deployment has not been fully tested and may have unknown issues. **We recommend using Vercel deployment** for better stability.
 
 If you have your own server (VPS/NAS), you can deploy simply with Docker:
 

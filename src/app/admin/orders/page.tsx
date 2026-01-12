@@ -3,6 +3,7 @@ import { orders } from "@/lib/db/schema"
 import { and, desc, eq, or, sql } from "drizzle-orm"
 import { AdminOrdersContent } from "@/components/admin/orders-content"
 import { cancelExpiredOrders, withOrderColumnFallback } from "@/lib/db/queries"
+import { PAYMENT_PRODUCT_ID } from "@/lib/payment"
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +38,11 @@ export default async function AdminOrdersPage(props: {
         whereParts.push(eq(orders.status, status))
     }
     if (fulfillment === 'needsDelivery') {
-        whereParts.push(and(eq(orders.status, 'paid'), sql`${orders.cardKey} IS NULL`))
+        whereParts.push(and(
+            eq(orders.status, 'paid'),
+            sql`${orders.cardKey} IS NULL`,
+            sql`${orders.productId} <> ${PAYMENT_PRODUCT_ID}`
+        ))
     }
     if (q) {
         const like = `%${q}%`

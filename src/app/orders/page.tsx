@@ -27,6 +27,7 @@ export default async function OrdersPage() {
         <OrdersContent
             orders={userOrders.map((o: any) => ({
                 orderId: o.orderId,
+                productId: o.productId,
                 productName: o.productName,
                 amount: o.amount,
                 status: o.status,

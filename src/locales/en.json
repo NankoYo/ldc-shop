@@ -146,6 +146,24 @@
             "cancelled": "Cancelled"
         }
     },
+    "payment": {
+        "title": "Payment",
+        "pageTitle": "Pay an Amount",
+        "pageDescription": "Enter the amount to pay and continue to checkout.",
+        "amountLabel": "Amount",
+        "amountPlaceholder": "Enter amount",
+        "payButton": "Proceed to Pay",
+        "invalidAmount": "Please enter a valid amount.",
+        "notice": "You will be redirected to the payment provider to complete the payment.",
+        "adminMenu": "Payment QR",
+        "adminTitle": "Payment QR Code",
+        "adminDescription": "Share the link or let users scan to pay.",
+        "linkLabel": "Payment Link",
+        "payeeLabel": "Payee",
+        "qrAlt": "Payment QR code",
+        "itemLabel": "Payment Item",
+        "paidMessage": "Payment received. No delivery or card is required."
+    },
     "orders": {
         "title": "My Orders",
         "noOrders": "You haven't placed any orders yet.",

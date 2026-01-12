@@ -5,13 +5,15 @@ import { useI18n } from "@/lib/i18n/context"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Package, Search } from "lucide-react"
+import { CreditCard, Package, Search } from "lucide-react"
 import { ClientDate } from "@/components/client-date"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { isPaymentOrder } from "@/lib/payment"
 
 interface Order {
     orderId: string
+    productId?: string | null
     productName: string
     amount: string
     status: string | null
@@ -46,6 +48,10 @@ export function OrdersContent({ orders }: { orders: Order[] }) {
         { key: 'cancelled', label: t('order.status.cancelled') },
     ]
 
+    const getOrderName = (order: Order) => {
+        return isPaymentOrder(order.productId) ? t('payment.title') : order.productName
+    }
+
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase()
         return orders.filter(o => {
@@ -53,10 +59,11 @@ export function OrdersContent({ orders }: { orders: Order[] }) {
             const statusOk = status === 'all' ? true : st === status
             if (!statusOk) return false
             if (!q) return true
-            const hay = [o.orderId, o.productName].join(' ').toLowerCase()
+            const displayName = getOrderName(o)
+            const hay = [o.orderId, o.productName, displayName].join(' ').toLowerCase()
             return hay.includes(q)
         })
-    }, [orders, query, status])
+    }, [orders, query, status, t])
 
     return (
         <main className="container py-12">
@@ -97,11 +104,15 @@ export function OrdersContent({ orders }: { orders: Order[] }) {
                             <Card className="hover:border-primary/50 transition-colors">
                                 <div className="flex items-center p-6 gap-4">
                                     <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0">
-                                        <Package className="h-6 w-6 text-muted-foreground" />
+                                        {isPaymentOrder(order.productId) ? (
+                                            <CreditCard className="h-6 w-6 text-muted-foreground" />
+                                        ) : (
+                                            <Package className="h-6 w-6 text-muted-foreground" />
+                                        )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between mb-1">
-                                            <h3 className="font-semibold truncate">{order.productName}</h3>
+                                            <h3 className="font-semibold truncate">{getOrderName(order)}</h3>
                                             <span className="font-bold">{Number(order.amount)} {t('common.credits')}</span>
                                         </div>
                                         <div className="flex items-center justify-between text-sm text-muted-foreground">

@@ -146,6 +146,24 @@
             "cancelled": "已取消"
         }
     },
+    "payment": {
+        "title": "收款",
+        "pageTitle": "输入付款金额",
+        "pageDescription": "输入金额后前往支付。",
+        "amountLabel": "付款金额",
+        "amountPlaceholder": "请输入金额",
+        "payButton": "去支付",
+        "invalidAmount": "请输入正确的金额",
+        "notice": "将跳转到支付页面完成付款。",
+        "adminMenu": "收款码",
+        "adminTitle": "收款码",
+        "adminDescription": "分享链接或让对方扫码付款。",
+        "linkLabel": "收款链接",
+        "payeeLabel": "收款方",
+        "qrAlt": "收款二维码",
+        "itemLabel": "收款项目",
+        "paidMessage": "付款已完成，无需发货或卡密。"
+    },
     "orders": {
         "title": "我的订单",
         "noOrders": "您还没有任何订单",
