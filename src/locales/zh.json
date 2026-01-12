@@ -34,6 +34,7 @@
         "outOfStock": "缺货",
         "stock": "库存",
         "sold": "已售",
+        "buy": "购买",
         "buyNow": "立即购买",
         "payNow": "立即支付",
         "processing": "处理中...",
