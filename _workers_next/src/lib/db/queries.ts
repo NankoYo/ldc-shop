@@ -725,6 +725,22 @@ export async function getSetting(key: string): Promise<string | null> {
     return result[0]?.value ?? null;
 }
 
+export async function getAllSettings(): Promise<Record<string, string>> {
+    try {
+        const rows = await db.select({ key: settings.key, value: settings.value }).from(settings);
+        return rows.reduce((acc, row) => {
+            acc[row.key] = row.value || '';
+            return acc;
+        }, {} as Record<string, string>);
+    } catch (error: any) {
+        if (isMissingTable(error)) {
+            await ensureSettingsTable();
+            return {};
+        }
+        throw error;
+    }
+}
+
 export async function setSetting(key: string, value: string): Promise<void> {
     await db.insert(settings)
         .values({ key, value, updatedAt: new Date() })
