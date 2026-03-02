@@ -8,7 +8,7 @@ import { sendTelegramMessage } from "@/lib/notifications"
 import { revalidatePath, updateTag } from "next/cache"
 import { setSetting, getSetting, recalcProductAggregates, recalcProductAggregatesForMany, getProductForAdmin } from "@/lib/db/queries"
 import { isAdminUsername } from "@/lib/admin-auth"
-import { pullOneCardFromApi, saveProductCardApiConfig } from "@/lib/card-api"
+import { getProductCardApiConfig, pullOneCardFromApi, saveProductCardApiConfig } from "@/lib/card-api"
 import { unstable_noStore } from "next/cache"
 
 export async function checkAdmin() {
@@ -387,6 +387,71 @@ export async function saveCardsApiConfig(productId: string, apiUrl: string, apiT
         autoPulled,
         autoPullError,
     }
+}
+
+export async function setCardsApiEnabled(
+    productId: string,
+    enabled: boolean,
+    apiUrl?: string,
+    apiToken?: string
+) {
+    await checkAdmin()
+
+    const id = String(productId || "").trim()
+    if (!id) throw new Error("Invalid product id")
+
+    const current = await getProductCardApiConfig(id)
+    const nextUrl = typeof apiUrl === "string" ? apiUrl.trim() : current.url
+    const nextToken = typeof apiToken === "string" ? apiToken.trim() : current.token
+
+    if (nextUrl.length > 1000) {
+        throw new Error("API URL is too long")
+    }
+    if (nextToken.length > 1000) {
+        throw new Error("API token is too long")
+    }
+    if (nextUrl) {
+        try {
+            void new URL(nextUrl)
+        } catch {
+            throw new Error("Invalid API URL")
+        }
+    }
+
+    if (enabled && !nextUrl) {
+        throw new Error("API URL is required")
+    }
+
+    await saveProductCardApiConfig(id, {
+        enabled,
+        url: nextUrl,
+        token: nextToken,
+    })
+
+    let autoPulled = false
+    let autoPullError: string | null = null
+    if (enabled && nextUrl) {
+        const pullResult = await pullOneCardFromApi(id)
+        if (pullResult.ok) {
+            autoPulled = true
+            try {
+                await recalcProductAggregates(id)
+            } catch {
+                // best effort
+            }
+        } else if (!pullResult.skipped) {
+            autoPullError = pullResult.error || "api_pull_failed"
+        }
+    }
+
+    revalidatePath(`/admin/cards/${id}`)
+    revalidatePath('/admin/products')
+    revalidatePath('/admin/settings')
+    revalidatePath('/')
+    updateTag('home:products')
+    updateTag('home:product-categories')
+
+    return { success: true, autoPulled, autoPullError }
 }
 
 export async function pullCardFromApi(productId: string) {

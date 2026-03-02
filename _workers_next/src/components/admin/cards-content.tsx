@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { addCards, deleteCard, deleteCards, pullCardFromApi, saveCardsApiConfig } from "@/actions/admin"
+import { addCards, deleteCard, deleteCards, pullCardFromApi, saveCardsApiConfig, setCardsApiEnabled } from "@/actions/admin"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useRef, useState } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -44,6 +44,7 @@ export function CardsContent({ productId, productName, unusedCards, apiConfig }:
     const [apiUrl, setApiUrl] = useState(apiConfig.url)
     const [apiToken, setApiToken] = useState(apiConfig.token)
     const [savingApi, setSavingApi] = useState(false)
+    const [togglingApiEnabled, setTogglingApiEnabled] = useState(false)
     const [pullingApi, setPullingApi] = useState(false)
     const submitLock = useRef(false)
     const batchDeleteLock = useRef(false)
@@ -150,6 +151,27 @@ export function CardsContent({ productId, productName, unusedCards, apiConfig }:
         }
     }
 
+    const handleToggleApiEnabled = async () => {
+        if (togglingApiEnabled || savingApi || pullingApi) return
+        const nextEnabled = !apiEnabled
+        setTogglingApiEnabled(true)
+        try {
+            const result = await setCardsApiEnabled(productId, nextEnabled, apiUrl, apiToken)
+            setApiEnabled(nextEnabled)
+            toast.success(t('common.success'))
+            if (result.autoPulled) {
+                toast.success(t('admin.cards.apiAutoPulled'))
+            } else if (result.autoPullError) {
+                toast.error(`${t('admin.cards.apiAutoPullFailed')}: ${result.autoPullError}`)
+            }
+            router.refresh()
+        } catch (e: any) {
+            toast.error(e?.message || t('common.error'))
+        } finally {
+            setTogglingApiEnabled(false)
+        }
+    }
+
     const handlePullOneCard = async () => {
         if (pullingApi) return
         setPullingApi(true)
@@ -205,21 +227,21 @@ export function CardsContent({ productId, productName, unusedCards, apiConfig }:
                         <Button
                             variant={apiEnabled ? "default" : "outline"}
                             size="sm"
-                            onClick={() => setApiEnabled(!apiEnabled)}
-                            disabled={savingApi || pullingApi}
+                            onClick={handleToggleApiEnabled}
+                            disabled={savingApi || pullingApi || togglingApiEnabled}
                         >
                             {apiEnabled ? t('admin.cards.apiEnabled') : t('admin.cards.apiDisabled')}
                         </Button>
                         <Button
                             variant="outline"
                             onClick={handleSaveApiConfig}
-                            disabled={savingApi || pullingApi}
+                            disabled={savingApi || pullingApi || togglingApiEnabled}
                         >
                             {savingApi ? t('common.processing') : t('common.save')}
                         </Button>
                         <Button
                             onClick={handlePullOneCard}
-                            disabled={pullingApi || savingApi}
+                            disabled={pullingApi || savingApi || togglingApiEnabled || !apiEnabled}
                         >
                             {pullingApi ? t('common.processing') : t('admin.cards.apiPullOne')}
                         </Button>

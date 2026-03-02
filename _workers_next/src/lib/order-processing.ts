@@ -339,9 +339,8 @@ export async function processOrderFulfillment(orderId: string, paidAmount: numbe
                         cardKeys: joinedKeys
                     }).catch(err => console.error('[Email] Send failed:', err));
                 }
-
-                await autoReplenishByApi(order.productId, `order:${orderId}`)
             })
+            await autoReplenishByApi(order.productId, `order:${orderId}`)
         } else {
             // Paid but no stock
             await db.update(orders)
