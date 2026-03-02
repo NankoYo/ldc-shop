@@ -6,6 +6,7 @@ import { and, eq, sql } from "drizzle-orm"
 import { revalidatePath, updateTag } from "next/cache"
 import { checkAdmin } from "@/actions/admin"
 import { recalcProductAggregates, recalcProductAggregatesForMany, createUserNotification } from "@/lib/db/queries"
+import { pullOneCardFromApi } from "@/lib/card-api"
 
 export async function markOrderPaid(orderId: string) {
   await checkAdmin()
@@ -61,6 +62,21 @@ export async function markOrderDelivered(orderId: string) {
         href: `/order/${order.orderId}`
       }
     })
+  }
+
+  if (order.productId && order.cardIds) {
+    try {
+      const result = await pullOneCardFromApi(order.productId)
+      if (result.ok) {
+        console.log(`[Card API] Auto replenished for product ${order.productId}, reason=admin_mark_delivered:${orderId}`)
+      } else if (result.skipped) {
+        console.info(`[Card API] Auto replenish skipped for product ${order.productId}, reason=admin_mark_delivered:${orderId}, detail=${result.error || "skipped"}`)
+      } else {
+        console.warn(`[Card API] Auto replenish failed for product ${order.productId}, reason=admin_mark_delivered:${orderId}, detail=${result.error || "unknown_error"}`)
+      }
+    } catch (error: any) {
+      console.warn(`[Card API] Auto replenish exception for product ${order.productId}, reason=admin_mark_delivered:${orderId}, detail=${error?.message || "unknown_error"}`)
+    }
   }
 
   revalidatePath('/admin/orders')

@@ -83,9 +83,11 @@ export async function processOrderFulfillment(orderId: string, paidAmount: numbe
                 console.log(`[Card API] Auto replenished for product ${productId}, reason=${reason}`)
                 return
             }
-            if (!result.skipped) {
-                console.warn(`[Card API] Auto replenish failed for product ${productId}: ${result.error || "unknown_error"}`)
+            if (result.skipped) {
+                console.info(`[Card API] Auto replenish skipped for product ${productId}, reason=${reason}, detail=${result.error || "skipped"}`)
+                return
             }
+            console.warn(`[Card API] Auto replenish failed for product ${productId}: ${result.error || "unknown_error"}`)
         } catch (error: any) {
             console.warn(`[Card API] Auto replenish exception for product ${productId}: ${error?.message || "unknown_error"}`)
         }

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db"
-import { cards } from "@/lib/db/schema"
-import { getSetting, setSetting } from "@/lib/db/queries"
+import { cards, settings } from "@/lib/db/schema"
+import { setSetting } from "@/lib/db/queries"
+import { inArray } from "drizzle-orm"
 
 export interface ProductCardApiConfig {
     enabled: boolean
@@ -59,17 +60,36 @@ function isUniqueConstraintError(error: any) {
     return text.includes("unique") || text.includes("constraint failed")
 }
 
+async function getSettingsUncached(keys: string[]): Promise<Record<string, string>> {
+    try {
+        const rows = await db.select({ key: settings.key, value: settings.value })
+            .from(settings)
+            .where(inArray(settings.key, keys))
+
+        const map: Record<string, string> = {}
+        for (const row of rows) {
+            map[row.key] = row.value || ""
+        }
+        return map
+    } catch (error: any) {
+        const text = `${error?.message || ""}${JSON.stringify(error || {})}`.toLowerCase()
+        if (text.includes("no such table") && text.includes("settings")) {
+            return {}
+        }
+        throw error
+    }
+}
+
 export async function getProductCardApiConfig(productId: string): Promise<ProductCardApiConfig> {
-    const [enabledRaw, urlRaw, tokenRaw] = await Promise.all([
-        getSetting(keyOf(productId, "enabled")),
-        getSetting(keyOf(productId, "url")),
-        getSetting(keyOf(productId, "token")),
-    ])
+    const enabledKey = keyOf(productId, "enabled")
+    const urlKey = keyOf(productId, "url")
+    const tokenKey = keyOf(productId, "token")
+    const values = await getSettingsUncached([enabledKey, urlKey, tokenKey])
 
     return {
-        enabled: enabledRaw === "true",
-        url: (urlRaw || "").trim(),
-        token: (tokenRaw || "").trim(),
+        enabled: values[enabledKey] === "true",
+        url: (values[urlKey] || "").trim(),
+        token: (values[tokenKey] || "").trim(),
     }
 }
 
